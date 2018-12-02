@@ -9,12 +9,12 @@ pub fn solve() {
     let part1 = input.iter().fold(0, |acc, x| { acc + x });
     println!("part1={}", part1);
 
-    let part2 = part2(&input);
+    let part2 = part_two(&input);
     println!("part2={}", part2);
 
 }
 
-fn part2(input: &[i32]) -> i32 {
+fn part_two(input: &[i32]) -> i32 {
     let mut items = HashSet::new();
     let mut current_freq = 0;
     let mut i = 0;
