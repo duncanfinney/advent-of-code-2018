@@ -1,7 +1,9 @@
+#![feature(slice_patterns)]
 mod day01;
 mod day02;
 mod day03;
+mod day04;
 
 fn main() {
-    day03::solve();
+    day04::solve();
 }

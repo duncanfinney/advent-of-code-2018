@@ -5,7 +5,7 @@ use std::str::FromStr;
 pub fn solve() {
     let input = include_str!("../input/day03")
         .lines()
-        .map(|l| { FabricClaim::from_str(&l).expect("invalid input") })
+        .map(|l| FabricClaim::from_str(&l).expect("invalid input"))
         .collect::<Vec<_>>();
 
     let answer = part_one(&input);
@@ -57,17 +57,14 @@ fn part_one(input: &Vec<FabricClaim>) -> usize {
     //count up the number that have more than 1 rectangle over it
     overlap
         .iter()
-        .map(|row| {
-            row.iter().filter(|cnt| { **cnt > 1 }).count()
-        })
-        .fold(0, |acc, x| { acc + x })
+        .map(|row| row.iter().filter(|cnt| **cnt > 1).count())
+        .fold(0, |acc, x| acc + x)
 }
 
 fn part_two(input: &Vec<FabricClaim>) -> u32 {
     let mut overlap = vec![vec![vec![0u32; 0]; 1000]; 1000]; // 1000 by 1000 list of ids
 
     input.iter().for_each(|fc| {
-
         for x in fc.x..(fc.x + fc.w) {
             for y in fc.y..(fc.y + fc.h) {
                 overlap[y][x].push(fc.number);

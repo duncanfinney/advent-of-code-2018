@@ -1,11 +1,8 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-
 pub fn solve() {
-    let input = include_str!("../input/day02")
-        .lines()
-        .collect::<Vec<_>>();
+    let input = include_str!("../input/day02").lines().collect::<Vec<_>>();
 
     let answer = part_one(&input);
     println!("part1={}", answer);
@@ -24,8 +21,8 @@ fn part_one(input: &[&str]) -> usize {
                 *counter += 1;
             }
 
-            let has_two = letter_counts.iter().any(|(&ch, &count)| { count == 2 });
-            let has_three = letter_counts.iter().any(|(&ch, &count)| { count == 3 });
+            let has_two = letter_counts.iter().any(|(&ch, &count)| count == 2);
+            let has_three = letter_counts.iter().any(|(&ch, &count)| count == 3);
             if has_two || has_three {
                 Some(Counts { has_two, has_three })
             } else {
@@ -34,9 +31,8 @@ fn part_one(input: &[&str]) -> usize {
         })
         .collect();
 
-
-    let num_with_two = to_hash.iter().filter(|c| { c.has_two }).count();
-    let num_with_three = to_hash.iter().filter(|c| { c.has_three }).count();
+    let num_with_two = to_hash.iter().filter(|c| c.has_two).count();
+    let num_with_three = to_hash.iter().filter(|c| c.has_three).count();
     num_with_two * num_with_three
 }
 
@@ -52,7 +48,7 @@ fn part_two(input: &[&str]) -> Option<String> {
         for i in 0..s.len() {
             let mut key = s[0..i].to_owned();
             key.push_str("_");
-            key.push_str(&s[(i+1)..]);
+            key.push_str(&s[(i + 1)..]);
             if lookup.contains(&key) {
                 return Some(key.replace("_", ""));
             }
