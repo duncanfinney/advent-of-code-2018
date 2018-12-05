@@ -6,8 +6,8 @@ pub fn solve() {
     let answer = part_one(&input);
     println!("part1={}", answer);
 
-    let answer = part_one(&input);
-    //    println!("part1={}", answer);
+    let answer = part_two(&input);
+    println!("part2={}", answer);
 }
 
 fn part_one(input: &Vec<char>) -> usize {
@@ -21,11 +21,35 @@ fn part_one(input: &Vec<char>) -> usize {
             stack.push(*c);
         }
     }
-    stack.into_iter().count()
+    stack.len()
 }
 
-fn part_two() -> String {
-    "".to_string()
+fn part_two(input: &Vec<char>) -> u32 {
+    // An iterator over the lowercase alpha's
+    (0..26)
+        .map(|x| (x + 'a' as u8) as char)
+        .map(|to_try| {
+            let mut stack = Vec::new();
+            for c in input {
+                if *c != to_try && *c != get_opposite_polarity(&to_try) {
+                    stack.push(*c);
+                    continue;
+                }
+
+                let twin = &get_opposite_polarity(&c);
+                let top = stack.last();
+                if top.is_some() && top.unwrap() == twin {
+                    stack.pop();
+                } else {
+                    stack.push(*c);
+                }
+            }
+            let len = stack.len() as u32;
+            len
+        })
+        .min()
+        .unwrap()
+        .into()
 }
 
 fn get_opposite_polarity(c: &char) -> char {
