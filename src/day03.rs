@@ -1,5 +1,8 @@
+//use itertools::Itertools;
+//use itertools::Itertools;
 use lazy_static::*;
 use regex::Regex;
+use std::collections::HashSet;
 use std::str::FromStr;
 
 pub fn solve() {
@@ -12,7 +15,7 @@ pub fn solve() {
     println!("part1={}", answer);
 
     let answer = part_two(&input);
-    println!("part1={}", answer);
+    println!("part2={}", answer);
 }
 
 #[derive(Debug, PartialEq)]
@@ -71,5 +74,17 @@ fn part_two(input: &Vec<FabricClaim>) -> u32 {
             }
         }
     });
-    0 //TODO
+
+    let seen_with_others :HashSet<_> = overlap.iter().flatten().filter(|l| { l.len() > 1 }).flatten().collect();
+    let answer = overlap
+        .iter()
+        .flatten()
+        .filter(|l| { l.len() == 1 })
+        .flatten()
+        .find(|item| {
+            !seen_with_others.contains(item)
+        })
+        .expect("no answer found");
+
+    *answer
 }
