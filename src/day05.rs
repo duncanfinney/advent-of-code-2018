@@ -31,8 +31,7 @@ fn part_two(input: &Vec<char>) -> u32 {
         .map(|to_try| {
             let mut stack = Vec::new();
             for c in input {
-                if *c != to_try && *c != get_opposite_polarity(&to_try) {
-                    stack.push(*c);
+                if *c == to_try || *c == get_opposite_polarity(&to_try) {
                     continue;
                 }
 
@@ -49,7 +48,6 @@ fn part_two(input: &Vec<char>) -> u32 {
         })
         .min()
         .unwrap()
-        .into()
 }
 
 fn get_opposite_polarity(c: &char) -> char {
@@ -58,4 +56,18 @@ fn get_opposite_polarity(c: &char) -> char {
     } else {
         c.to_lowercase().next().unwrap()
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part_two_answers() {
+        let input = "dabAcCaCBAcCcaDA".chars().collect();
+        let answer = part_two(&input);
+        assert_eq!(answer, 4);
+    }
+
 }
