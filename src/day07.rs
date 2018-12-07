@@ -1,9 +1,9 @@
+use itertools::*;
 use lazy_static::*;
 use petgraph::graphmap::GraphMap;
 use petgraph::Directed;
 use petgraph::Direction;
 use regex::Regex;
-use itertools::*;
 use std::collections::HashSet;
 
 type Graph = GraphMap<char, u32, Directed>;
@@ -17,7 +17,7 @@ pub fn solve() {
 }
 
 fn parse_input(input: &'static str) -> Graph {
-    let mut gr = GraphMap::<_, _, Directed>::with_capacity(26, 26*26);
+    let mut gr = GraphMap::<_, _, Directed>::with_capacity(26, 26 * 26);
 
     input.lines().for_each(|l| {
         lazy_static! {
@@ -35,16 +35,19 @@ fn parse_input(input: &'static str) -> Graph {
     gr
 }
 
-
-fn part_one(input :Graph) -> String {
+fn part_one(input: Graph) -> String {
     let mut ret = vec![];
     let mut input = input.clone();
     while input.node_count() > 0 {
-//        println!("---");
-//        println!("input: {:?}", input);
-//        println!("node_count={:?}", input.node_count());
-//        println!("---");
-        let mut next_node = input.nodes().filter(|n| { input.neighbors_directed(*n, Direction::Incoming).count() == 0 }).min().expect("something went wrong");
+        //        println!("---");
+        //        println!("input: {:?}", input);
+        //        println!("node_count={:?}", input.node_count());
+        //        println!("---");
+        let mut next_node = input
+            .nodes()
+            .filter(|n| input.neighbors_directed(*n, Direction::Incoming).count() == 0)
+            .min()
+            .expect("something went wrong");
         ret.push(next_node);
         input.remove_node(next_node);
     }
