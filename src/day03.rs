@@ -75,15 +75,18 @@ fn part_two(input: &Vec<FabricClaim>) -> u32 {
         }
     });
 
-    let seen_with_others :HashSet<_> = overlap.iter().flatten().filter(|l| { l.len() > 1 }).flatten().collect();
+    let seen_with_others: HashSet<_> = overlap
+        .iter()
+        .flatten()
+        .filter(|l| l.len() > 1)
+        .flatten()
+        .collect();
     let answer = overlap
         .iter()
         .flatten()
-        .filter(|l| { l.len() == 1 })
+        .filter(|l| l.len() == 1)
         .flatten()
-        .find(|item| {
-            !seen_with_others.contains(item)
-        })
+        .find(|item| !seen_with_others.contains(item))
         .expect("no answer found");
 
     *answer

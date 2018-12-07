@@ -58,7 +58,6 @@ fn get_opposite_polarity(c: &char) -> char {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
