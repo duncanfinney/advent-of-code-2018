@@ -1,3 +1,4 @@
+use itertools::*;
 use regex::Regex;
 use std::collections::HashMap;
 
@@ -52,12 +53,12 @@ struct Game {
 impl Game {
     pub fn with_rules(n_players: u32, n_points: u32) -> Game {
         Game {
-            cur_marble_idx: 1,
-            cur_board: vec![0, 1],
+            cur_marble_idx: 0,
+            cur_board: vec![0],
             player_scores: HashMap::new(),
 
-            next_player: 2,
-            next_player_marble: 2,
+            next_player: 1,
+            next_player_marble: 1,
 
             n_players,
             n_points,
@@ -65,11 +66,6 @@ impl Game {
     }
 
     pub fn play_turn(&mut self) {
-        let mut next_index = self.cur_marble_idx + 2;
-        if next_index > self.cur_board.len() {
-            next_index -= self.cur_board.len();
-        }
-
         match self.next_player_marble {
             x if x % 23 == 0 => {
                 //TODO: gross?
@@ -80,20 +76,26 @@ impl Game {
                     .to_owned();
 
                 player_score += self.next_player_marble;
-                let mut remove_idx = next_index - 7;
+                let mut remove_idx: i32 = self.cur_marble_idx as i32 - 7;
                 if remove_idx <= 0 {
-                    remove_idx += self.cur_board.len();
+                    remove_idx += self.cur_board.len() as i32;
                 }
 
                 //remove and add to score
-                player_score += self.cur_board.remove(remove_idx);
-                self.player_scores.inser
-                self.cur_marble_idx = remove_idx;
+                player_score += self.cur_board.remove(remove_idx as usize);
+                self.player_scores.insert(self.next_player, player_score);
+                self.cur_marble_idx = remove_idx as usize;
             }
             _ => {
+                let mut next_index: i32 = self.cur_marble_idx as i32 + 2;
+                if next_index > self.cur_board.len() as i32 {
+                    next_index -= self.cur_board.len() as i32;
+                }
+
                 //normal turn
-                self.cur_board.insert(next_index, self.next_player_marble);
-                self.cur_marble_idx = next_index;
+                self.cur_board
+                    .insert(next_index as usize, self.next_player_marble);
+                self.cur_marble_idx = next_index as usize;
             }
         }
 
@@ -113,9 +115,68 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_text_example() {
+        let mut game = Game::with_rules(9, 25);
+        for _ in 0..26 {
+            game.play_turn();
+            print!("{:5}", format!("[{}]", game.next_player));
+            for (i, item) in game.cur_board.iter().enumerate() {
+                let text = if game.cur_marble_idx == i {
+                    format!("({})", item)
+                } else {
+                    format!("{}", item)
+                };
+
+                print!("{:5}", text);
+            }
+            print!("\n");
+        }
+    }
+
+    #[test]
     fn test_part_one_examples() {
-        let mut game = Game::with_rules(10, 1618);
-        let mut answer = part_one(&mut game);
-        assert_eq!(answer, 8317);
+        let test_cases = vec![
+            (
+                Input {
+                    n_players: 10,
+                    n_points: 1618,
+                },
+                8317,
+            ),
+            (
+                Input {
+                    n_players: 13,
+                    n_points: 7999,
+                },
+                146373,
+            ),
+            (
+                Input {
+                    n_players: 17,
+                    n_points: 1104,
+                },
+                2764,
+            ),
+            (
+                Input {
+                    n_players: 21,
+                    n_points: 6111,
+                },
+                54718,
+            ),
+            (
+                Input {
+                    n_players: 30,
+                    n_points: 5807,
+                },
+                37305,
+            ),
+        ];
+
+        test_cases.iter().for_each(|test_case| {
+            let mut game = Game::with_rules(test_case.0.n_players, test_case.0.n_points);
+            let mut answer = part_one(&mut game);
+            assert_eq!(answer, test_case.1);
+        });
     }
 }
