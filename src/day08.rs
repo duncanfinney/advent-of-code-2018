@@ -8,7 +8,10 @@ pub fn solve() {
 
     let mut input = parse_node(&mut input);
 
-    let answer = part_one(input);
+    let answer = part_one(&input);
+    println!("part_one={:?}", answer);
+
+    let answer = part_two(&input);
     println!("part_one={:?}", answer);
 }
 
@@ -40,14 +43,35 @@ struct Node {
 
 impl Node {
     fn sum_of_all_metadata(&self) -> u32 {
-        let my_sum: u32 = self.metadata.iter().map(|&n| n as u32).sum();
+        let my_sum: u32 = self.sum_of_own_metadata();
         let children_sum: u32 = self.children.iter().map(|c| c.sum_of_all_metadata()).sum();
         my_sum + children_sum
     }
+
+    fn sum_of_own_metadata(&self) -> u32 {
+        self.metadata.iter().map(|&n| n as u32).sum()
+    }
+
+    fn value(&self) -> u32 {
+        if self.children.is_empty() {
+            self.sum_of_own_metadata()
+        } else {
+            self
+                .metadata
+                .iter()
+                .map(|&m| match self.children.get(m as usize-1) {
+                    Some(c) => c.value(),
+                    None => 0
+                })
+                .sum()
+        }
+    }
 }
 
-fn part_one(input: Node) -> u32 {
+fn part_one(input: &Node) -> u32 {
     input.sum_of_all_metadata()
 }
 
-fn part_two() {}
+fn part_two(input: &Node) -> u32 {
+    input.value()
+}
