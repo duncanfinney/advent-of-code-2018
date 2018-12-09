@@ -9,6 +9,10 @@ pub fn solve() {
     let mut game = Game::with_rules(input.n_players, input.n_points);
     let answer = part_one(&mut game);
     println!("part_one={:?}", answer);
+
+    let mut game = Game::with_rules(input.n_players, input.n_points * 100);
+    let answer = part_one(&mut game);
+    println!("part_two={:?}", answer);
 }
 
 struct Input {
