@@ -5,15 +5,16 @@
 //mod day03;
 //mod day04;
 //mod day05;
-mod day07;
+//mod day07;
 //mod day08;
 //mod day09;
+mod day10;
 
 fn main() {
     use std::time::Instant;
     let start_time = Instant::now();
 
-    day07::solve();
+    day10::solve();
 
     let duration = start_time.elapsed().as_millis();
     println!("runtime: {}ms", duration);
