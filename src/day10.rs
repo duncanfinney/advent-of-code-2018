@@ -7,12 +7,15 @@ pub fn solve() {
 
     let mut t = 1i64;
     let mut last_area = std::i64::MAX;
-    while last_area > input.extent_at_time(t).area() {
+    while last_area >= input.extent_at_time(t).area() {
         last_area = input.extent_at_time(t).area();
         t += 1;
     }
 
+    println!("part_one:");
     input.print(t - 1);
+
+    println!("part_two= {:?}", t-1);
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -86,9 +89,9 @@ impl Board {
             y_min,
             y_max,
         } = self.extent_at_time(t);
-        for y in y_min..y_max {
-            for x in x_min..x_max {
-                let c = if self.0.iter().any(|l| l.x == x && l.y == y) {
+        for y in y_min..=y_max {
+            for x in x_min..=x_max {
+                let c = if self.0.iter().map(|l| { l.position_at_time(t) }).any(|l| l.0 == x && l.1 == y) {
                     "#"
                 } else {
                     "."
@@ -97,6 +100,7 @@ impl Board {
             }
             print!("\n");
         }
+        print!("\n\n");
     }
 }
 
@@ -130,6 +134,3 @@ fn parse_input(input: &str) -> Board {
     Board(lights)
 }
 
-fn part_one(input: &Vec<Light>) -> u32 {
-    0
-}
