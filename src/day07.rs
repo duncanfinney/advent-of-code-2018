@@ -58,7 +58,7 @@ fn part_two(input: &Graph) -> u32 {
     let mut worker_pool = Worker::get_pool(5);
     let mut secs_elapsed = 0;
 
-    while input.node_count() > 0 {
+    while input.node_count() > 0 || worker_pool.iter().any(|w| w.working_on.is_some()) {
         let mut looking_for_work: VecDeque<_> = worker_pool
             .iter_mut()
             .filter(|w| w.working_on.is_none())
@@ -88,7 +88,7 @@ fn part_two(input: &Graph) -> u32 {
     secs_elapsed
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 struct Worker {
     working_on: Option<char>,
     work_left: u32,
@@ -101,7 +101,7 @@ impl Worker {
 
     fn work_on(&mut self, c: &char) {
         self.working_on = Some(*c);
-        self.work_left = 60 + (*c as u32 - 'A' as u32 + 1);
+        self.work_left = 61 + (*c as u32 - 'A' as u32);
     }
 }
 
@@ -115,9 +115,14 @@ mod tests {
             working_on: None,
             work_left: 0,
         };
-        worker.work_on(&'A');
-        println!("worker={:?}", worker);
-        assert_eq!(0, 1);
+        worker.work_on(&'B');
+        assert_eq!(
+            worker,
+            Worker {
+                working_on: Some('B'),
+                work_left: 62
+            }
+        );
     }
 
     #[test]
@@ -127,6 +132,20 @@ mod tests {
 
         let answer = part_two(&input);
         assert_ne!(answer, 336);
-        assert_ne!(answer, 341); // TOO low still
+        assert_ne!(answer, 341);
+        assert_ne!(answer, 342); // STILL too low. I quit
+        assert_ne!(answer, 425); // STILL too low. I quit
+    }
+
+    #[test]
+    fn run_example() {
+        let input = r#"Step C must be finished before step A can begin.
+Step C must be finished before step F can begin.
+Step A must be finished before step B can begin.
+Step A must be finished before step D can begin.
+Step B must be finished before step E can begin.
+Step D must be finished before step E can begin.
+Step F must be finished before step E can begin."#
+
     }
 }
