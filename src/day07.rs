@@ -1,10 +1,9 @@
-//use itertools::*;
 use lazy_static::*;
 use petgraph::graphmap::GraphMap;
 use petgraph::Directed;
 use petgraph::Direction;
 use regex::Regex;
-use std::collections::HashSet;
+use std::collections::VecDeque;
 
 type Graph = GraphMap<char, u32, Directed>;
 
@@ -13,10 +12,10 @@ pub fn solve() {
     let input = parse_input(&input);
 
     let answer = part_one(&input);
-    println!("part1={:?}", answer);
+    println!("part1= {}", answer);
 
     let answer = part_two(&input);
-    println!("part1={:?}", answer);
+    println!("part2= {:?}", answer);
 }
 
 fn parse_input(input: &'static str) -> Graph {
@@ -42,7 +41,7 @@ fn part_one(input: &Graph) -> String {
     let mut ret = vec![];
     let mut input = input.clone();
     while input.node_count() > 0 {
-        let mut next_node = input
+        let next_node = input
             .nodes()
             .filter(|n| input.neighbors_directed(*n, Direction::Incoming).count() == 0)
             .min()
@@ -56,39 +55,78 @@ fn part_one(input: &Graph) -> String {
 fn part_two(input: &Graph) -> u32 {
     let mut input = input.clone();
 
-    let worker_pool = Worker::get_pool(5);
+    let mut worker_pool = Worker::get_pool(5);
     let mut secs_elapsed = 0;
 
     while input.node_count() > 0 {
+        let mut looking_for_work: VecDeque<_> = worker_pool
+            .iter_mut()
+            .filter(|w| w.working_on.is_none())
+            .collect();
 
-        let looking_for_work = worker_pool.iter().find(|&&w| { w.working_on.is_none() });
-
-
-        let mut next_node = input
+        let mut able_to_work_on: VecDeque<_> = input
             .nodes()
             .filter(|n| input.neighbors_directed(*n, Direction::Incoming).count() == 0)
-            .min();
+            .collect();
 
-        match next_node {
-            Some(n) => println!("going to work on next_node: {:?}", next_node),
-            _ => println!("nothing to work on right now")
+        while !looking_for_work.is_empty() && !able_to_work_on.is_empty() {
+            let worker = looking_for_work.pop_front().unwrap();
+            let work = able_to_work_on.pop_front().unwrap();
+            worker.work_on(&work);
+            input.remove_node(work);
         }
 
-        secs_elapsed += 1;
-        break;
+        for w in worker_pool.iter_mut().filter(|w| w.work_left > 0) {
+            w.work_left -= 1;
+            if w.work_left == 0 {
+                w.working_on = None;
+            }
+        }
+
+        secs_elapsed = secs_elapsed + 1;
     }
     secs_elapsed
-
 }
 
 #[derive(Debug, Default)]
 struct Worker {
     working_on: Option<char>,
-    work_left: u32
+    work_left: u32,
 }
 
 impl Worker {
-    fn get_pool(num :u32) -> Vec<Worker> {
-        (0..num).map(|_| { Worker::default() }).collect()
+    fn get_pool(num: u32) -> Vec<Worker> {
+        (0..num).map(|_| Worker::default()).collect()
+    }
+
+    fn work_on(&mut self, c: &char) {
+        self.working_on = Some(*c);
+        self.work_left = 60 + (*c as u32 - 'A' as u32 + 1);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_work_on() {
+        let mut worker = Worker {
+            working_on: None,
+            work_left: 0,
+        };
+        worker.work_on(&'A');
+        println!("worker={:?}", worker);
+        assert_eq!(0, 1);
+    }
+
+    #[test]
+    fn test_bad_guesses() {
+        let input = include_str!("../input/day07");
+        let input = parse_input(&input);
+
+        let answer = part_two(&input);
+        assert_ne!(answer, 336);
+        assert_ne!(answer, 341); // TOO low still
     }
 }
