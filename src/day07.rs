@@ -3,7 +3,6 @@ use petgraph::graphmap::GraphMap;
 use petgraph::Directed;
 use petgraph::Direction;
 use regex::Regex;
-use std::collections::VecDeque;
 use std::collections::HashSet;
 
 type Graph = GraphMap<char, u32, Directed>;
@@ -60,13 +59,21 @@ fn part_two(input: &Graph) -> u32 {
     let mut secs_elapsed = 0;
 
     while input.node_count() > 0 || worker_pool.iter().any(|w| w.working_on.is_some()) {
-        let mut looking_for_work: VecDeque<_> = worker_pool
-            .iter_mut()
-            .filter(|w| w.working_on.is_none())
-            .collect();
+        for w in worker_pool.iter_mut().filter(|w| w.working_on.is_some()) {
+            w.work_left -= 1;
+            if w.work_left <= 0 {
+                input.remove_node(w.working_on.unwrap());
+                w.working_on = None;
+            }
+        }
 
-        let being_worked_on :HashSet<char> = { looking_for_work.iter().filter_map(|w| w.working_on).collect::<HashSet<_>>() };
-        let mut able_to_work_on: VecDeque<_> = input
+        let being_worked_on: HashSet<char> = {
+            worker_pool
+                .iter()
+                .filter_map(|w| w.working_on)
+                .collect::<HashSet<_>>()
+        };
+        let mut able_to_work_on: Vec<_> = input
             .nodes()
             // remove the ones that are already being worked on
             .filter(|n| !being_worked_on.contains(n))
@@ -74,17 +81,19 @@ fn part_two(input: &Graph) -> u32 {
             .filter(|n| input.neighbors_directed(*n, Direction::Incoming).count() == 0)
             .collect();
 
-        while !looking_for_work.is_empty() && !able_to_work_on.is_empty() {
-            let worker = looking_for_work.pop_front().unwrap();
-            let work = able_to_work_on.pop_front().unwrap();
-            worker.work_on(&work);
-        }
+        able_to_work_on.sort();
 
-        for w in worker_pool.iter_mut().filter(|w| w.working_on.is_some()) {
-            w.work_left -= 1;
-            if w.work_left <= 0 {
-                input.remove_node(w.working_on.unwrap());
-                w.working_on = None;
+        loop {
+            if able_to_work_on.is_empty() {
+                break;
+            }
+
+            let worker = worker_pool.iter_mut().find(|w| w.working_on.is_none());
+            if let Some(w) = worker {
+                w.work_on(&able_to_work_on.remove(0));
+                continue;
+            } else {
+                break;
             }
         }
 
@@ -142,5 +151,8 @@ mod tests {
         assert_ne!(answer, 425); // STILL too low. I quit
         assert_ne!(answer, 1504);
         assert_ne!(answer, 1505);
+        assert_ne!(answer, 1506);
+
+        assert_eq!(answer, 848); // FINALLY
     }
 }
