@@ -89,7 +89,7 @@ impl Game {
                 player_score += self.cur_board.remove(remove_idx as usize);
                 self.player_scores.insert(self.next_player, player_score);
                 self.cur_marble_idx = remove_idx as usize;
-            }
+           }
             _ => {
                 let mut next_index: i32 = self.cur_marble_idx as i32 + 2;
                 if next_index > self.cur_board.len() as i32 {
