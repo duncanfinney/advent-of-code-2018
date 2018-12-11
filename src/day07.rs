@@ -4,6 +4,7 @@ use petgraph::Directed;
 use petgraph::Direction;
 use regex::Regex;
 use std::collections::VecDeque;
+use std::collections::HashSet;
 
 type Graph = GraphMap<char, u32, Directed>;
 
@@ -64,8 +65,12 @@ fn part_two(input: &Graph) -> u32 {
             .filter(|w| w.working_on.is_none())
             .collect();
 
+        let being_worked_on :HashSet<char> = { looking_for_work.iter().filter_map(|w| w.working_on).collect::<HashSet<_>>() };
         let mut able_to_work_on: VecDeque<_> = input
             .nodes()
+            // remove the ones that are already being worked on
+            .filter(|n| !being_worked_on.contains(n))
+            // and the ones that have dependencies
             .filter(|n| input.neighbors_directed(*n, Direction::Incoming).count() == 0)
             .collect();
 
@@ -73,25 +78,25 @@ fn part_two(input: &Graph) -> u32 {
             let worker = looking_for_work.pop_front().unwrap();
             let work = able_to_work_on.pop_front().unwrap();
             worker.work_on(&work);
-            input.remove_node(work);
         }
 
-        for w in worker_pool.iter_mut().filter(|w| w.work_left > 0) {
+        for w in worker_pool.iter_mut().filter(|w| w.working_on.is_some()) {
             w.work_left -= 1;
-            if w.work_left == 0 {
+            if w.work_left <= 0 {
+                input.remove_node(w.working_on.unwrap());
                 w.working_on = None;
             }
         }
 
         secs_elapsed = secs_elapsed + 1;
     }
-    secs_elapsed
+    secs_elapsed - 1
 }
 
 #[derive(Debug, Default, PartialEq)]
 struct Worker {
     working_on: Option<char>,
-    work_left: u32,
+    work_left: i32,
 }
 
 impl Worker {
@@ -101,7 +106,7 @@ impl Worker {
 
     fn work_on(&mut self, c: &char) {
         self.working_on = Some(*c);
-        self.work_left = 61 + (*c as u32 - 'A' as u32);
+        self.work_left = 60 + 1 + *c as i32 - 'A' as i32;
     }
 }
 
@@ -135,17 +140,7 @@ mod tests {
         assert_ne!(answer, 341);
         assert_ne!(answer, 342); // STILL too low. I quit
         assert_ne!(answer, 425); // STILL too low. I quit
-    }
-
-    #[test]
-    fn run_example() {
-        let input = r#"Step C must be finished before step A can begin.
-Step C must be finished before step F can begin.
-Step A must be finished before step B can begin.
-Step A must be finished before step D can begin.
-Step B must be finished before step E can begin.
-Step D must be finished before step E can begin.
-Step F must be finished before step E can begin."#;
-
+        assert_ne!(answer, 1504);
+        assert_ne!(answer, 1505);
     }
 }
