@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::hash::Hash;
 
 pub fn solve() {
     let input = include_str!("../input/day06");
@@ -8,6 +7,9 @@ pub fn solve() {
 
     let answer = part_one(&input);
     println!("part_one= {:?}", answer);
+
+    let answer = part_two(&input);
+    println!("part_two= {:?}", answer);
 }
 
 fn parse_input(input: &str) -> Vec<Point> {
@@ -103,4 +105,21 @@ fn part_one(input: &Vec<Point>) -> i32 {
     *area_counts[0].1
 }
 
-fn part_two() {}
+fn part_two(input :&Vec<Point>) -> u32 {
+    let min_x = input.iter().map(|p| p.0).min().unwrap();
+    let max_x = input.iter().map(|p| p.0).max().unwrap();
+    let min_y = input.iter().map(|p| p.1).min().unwrap();
+    let max_y = input.iter().map(|p| p.1).max().unwrap();
+
+    let mut total_distances = vec![];
+    for x in min_x..max_x {
+        for y in min_y..max_y {
+            let this_point = Point(x, y);
+            let total_distance :i32 = input.iter().map(|p| p.distance_to(&this_point)).sum();
+            total_distances.push((x,y, total_distance));
+        }
+    }
+
+    let size = total_distances.iter().filter(|x| x.2 <= 10000).count();
+    size as u32
+}
