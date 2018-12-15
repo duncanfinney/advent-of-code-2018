@@ -1,28 +1,89 @@
 use itertools::Itertools;
+use itertools::*;
 use std::collections::HashMap;
-use std::io::{self, stdout, Write};
+use std::io::{stdout, Write};
 use std::thread::sleep_ms;
+use uuid::Uuid;
 
-const DELAY :u32 = 100;
+const DELAY: u32 = 0;
 
 pub fn solve() {
     let input = include_str!("../input/day13");
     let mut input = parse_input(&input);
-    clear_console();
 
-    input.debug_print();
+//    part_one(&mut input.clone());
+    let answer = part_two(&mut input.clone());
+    println!("part_two= {:?}", answer);
+}
+
+fn part_one(input: &mut Board) {
+//    clear_console();
+//    input.debug_print(0);
     sleep_ms(DELAY);
 
-    for _ in 0.. {
+    for t in 1.. {
         let mut new_carts = input.carts.clone();
-        for c in new_carts.iter_mut() {
-            c.do_move(&input);
+        new_carts.sort_by(|a, b| {
+            if a.location.y == b.location.y {
+                a.location.x.cmp(&b.location.x)
+            } else {
+                a.location.y.cmp(&b.location.y)
+            }
+        });
+        for i in 0..new_carts.len() {
+            if let Some(c) = new_carts.get_mut(i) {
+                c.do_move(&input);
+            }
+            mark_crashes(&mut new_carts);
+            if let Some(c) = new_carts.iter().find(|c| c.is_crashed) {
+                println!("answer={:?}", c.location);
+                return;
+            }
         }
+
         input.carts = new_carts;
-        clear_console();
-        input.debug_print();
-        sleep_ms(DELAY);
+//        clear_console();
+//        input.debug_print(t);
+//        sleep_ms(DELAY);
     }
+}
+
+fn part_two(input: &mut Board) -> Location {
+
+    for t in 1.. {
+
+        // see if we are done
+        if input.carts.len() == 1 {
+            return input.carts.get(0).unwrap().location;
+        }
+
+        let mut new_carts = input.carts.clone();
+        new_carts.sort_by(|a, b| {
+            if a.location.y == b.location.y {
+                a.location.x.cmp(&b.location.x)
+            } else {
+                a.location.y.cmp(&b.location.y)
+            }
+        });
+
+        for i in 0..new_carts.len() {
+            if let Some(c) = new_carts.get_mut(i) {
+                c.do_move(&input);
+            }
+            mark_crashes(&mut new_carts);
+        }
+
+        input.carts = new_carts
+            .iter()
+            .filter_map(|c| match c {
+                x if x.is_crashed => None,
+                _ => Some(c.to_owned().clone())
+            })
+            .collect();
+
+    }
+
+    Location::default()
 }
 
 fn clear_console() {
@@ -48,24 +109,32 @@ fn parse_input(input: &str) -> Board {
 
             let cart = match pair.1 {
                 '^' => Some(Cart {
+                    id: Uuid::new_v4(),
                     location: Location { x, y },
                     orientation: Direction::Up,
                     last_turn: None,
+                    is_crashed: false,
                 }),
                 'v' => Some(Cart {
+                    id: Uuid::new_v4(),
                     location: Location { x, y },
                     orientation: Direction::Down,
                     last_turn: None,
+                    is_crashed: false,
                 }),
                 '<' => Some(Cart {
+                    id: Uuid::new_v4(),
                     location: Location { x, y },
                     orientation: Direction::Left,
                     last_turn: None,
+                    is_crashed: false,
                 }),
                 '>' => Some(Cart {
+                    id: Uuid::new_v4(),
                     location: Location { x, y },
                     orientation: Direction::Right,
                     last_turn: None,
+                    is_crashed: false,
                 }),
                 _ => None,
             };
@@ -80,13 +149,24 @@ fn parse_input(input: &str) -> Board {
     board
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 struct Board {
     tiles: HashMap<Location, TileType>,
     carts: Vec<Cart>,
 
     max_x: u32,
     max_y: u32,
+}
+
+fn mark_crashes(carts: &mut Vec<Cart>) {
+    for (key, group) in &carts.into_iter().group_by(|l| l.location) {
+        let mut v = group.collect_vec();
+        if v.len() > 1 {
+            for c in v {
+                c.is_crashed = true
+            }
+        }
+    }
 }
 
 impl Board {
@@ -104,7 +184,11 @@ impl Board {
         self.tiles.insert(l.clone(), t);
     }
 
-    fn debug_print(&self) {
+
+
+    fn debug_print(&self, t: u32) {
+        //        println!("-------------------------------------------");
+        //        println!("t={}", t);
         for y in 0..=self.max_y {
             for x in 0..=self.max_x {
                 let loc = Location { x, y };
@@ -127,13 +211,13 @@ impl Board {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Debug, Copy, Clone)]
+#[derive(Eq, PartialEq, Hash, Debug, Copy, Clone, Default)]
 struct Location {
     x: u32,
     y: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum TileType {
     Empty,
     UpDown,
@@ -145,13 +229,19 @@ enum TileType {
 
 #[derive(Debug, Clone)]
 struct Cart {
+    id: Uuid,
     location: Location,
     orientation: Direction,
     last_turn: Option<TurnOption>,
+    is_crashed: bool,
 }
 
 impl Cart {
     fn debug_print(&self) {
+        if self.is_crashed {
+            print!("X");
+            return;
+        }
         use self::Direction::*;
         let c = match self.orientation {
             Up => '^',
