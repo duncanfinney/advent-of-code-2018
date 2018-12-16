@@ -7,7 +7,7 @@ pub fn solve() {
 }
 
 fn parse_input(input: &str) -> Board {
-    let mut characters = vec![];
+    let mut units = vec![];
 
     let tiles = input
         .lines()
@@ -19,11 +19,21 @@ fn parse_input(input: &str) -> Board {
                     '#' => Tile::Wall,
                     '.' => Tile::OpenCavern,
                     'E' => {
-                        characters.push(Character::Elf { x, y });
+                        units.push(Unit {
+                            x,
+                            y,
+                            hp: 200,
+                            species: Species::Elf
+                        });
                         Tile::OpenCavern
                     }
                     'G' => {
-                        characters.push(Character::Goblin { x, y });
+                        units.push(Unit {
+                            x,
+                            y,
+                            hp: 200,
+                            species: Species::Goblin
+                        });
                         Tile::OpenCavern
                     }
                     _ => panic!("bad puzzle input"),
@@ -32,13 +42,13 @@ fn parse_input(input: &str) -> Board {
         })
         .collect_vec();
 
-    Board { tiles, characters }
+    Board { tiles, units }
 }
 
 #[derive(Debug)]
 struct Board {
     tiles: Vec<Vec<Tile>>,
-    characters: Vec<Character>,
+    units: Vec<Unit>,
 }
 
 #[derive(Debug)]
@@ -47,19 +57,30 @@ enum Tile {
     OpenCavern,
 }
 
+
+#[derive(Debug, PartialEq)]
+enum Species {
+    Goblin,
+    Elf,
+}
+
 #[derive(Debug)]
-enum Character {
-    Goblin { x: usize, y: usize },
-    Elf { x: usize, y: usize },
+struct Unit {
+    species: Species,
+    hp: i32,
+    x: usize,
+    y: usize,
 }
 
 impl Board {
     fn debug_print(&self) {
         for (y, r) in self.tiles.iter().enumerate() {
             for (x, c) in r.iter().enumerate() {
-                let rep = match self.characters.iter().find(|c| c.is_on_tile(x, y)) {
-                    Some(Character::Elf { .. }) => "E",
-                    Some(Character::Goblin { .. }) => "G",
+                let rep = match self.units.iter().find(|c| c.is_on_tile(x, y)) {
+                    Some(Unit { species, .. }) => match species {
+                        Species::Elf => "E",
+                        Species::Goblin => "G"
+                    }
                     None => match c {
                         Tile::Wall => "#",
                         Tile::OpenCavern => ".",
@@ -73,12 +94,8 @@ impl Board {
     }
 }
 
-impl Character {
+impl Unit {
     fn is_on_tile(&self, cx: usize, cy: usize) -> bool {
-        use self::Character::*;
-        match self {
-            &Goblin { x, y } => cx == x && cy == y,
-            &Elf { x, y } => cx == x && cy == y,
-        }
+        self.x == cx && self.y == cy
     }
 }
