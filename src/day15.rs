@@ -23,7 +23,7 @@ fn parse_input(input: &str) -> Board {
                             x,
                             y,
                             hp: 200,
-                            species: Species::Elf
+                            species: Species::Elf,
                         });
                         Tile::OpenCavern
                     }
@@ -32,7 +32,7 @@ fn parse_input(input: &str) -> Board {
                             x,
                             y,
                             hp: 200,
-                            species: Species::Goblin
+                            species: Species::Goblin,
                         });
                         Tile::OpenCavern
                     }
@@ -57,7 +57,6 @@ enum Tile {
     OpenCavern,
 }
 
-
 #[derive(Debug, PartialEq)]
 enum Species {
     Goblin,
@@ -79,8 +78,8 @@ impl Board {
                 let rep = match self.units.iter().find(|c| c.is_on_tile(x, y)) {
                     Some(Unit { species, .. }) => match species {
                         Species::Elf => "E",
-                        Species::Goblin => "G"
-                    }
+                        Species::Goblin => "G",
+                    },
                     None => match c {
                         Tile::Wall => "#",
                         Tile::OpenCavern => ".",
