@@ -1,16 +1,17 @@
 use itertools::Itertools;
 use lazy_static::*;
 use regex::Regex;
+use std::collections::HashMap;
 
 pub fn solve() {
     let input = include_str!("../input/day16");
-    let input = parse_input(input);
+    let mut input = parse_input(input);
 
     let answer = part_one(&input);
     println!("part_one= {:?}", answer);
 
-//    let answer = part_two(&input);
-//    println!("part_two={:?}", answer);
+    let answer = part_two(&mut input);
+    println!("part_two={:?}", answer);
 }
 
 fn parse_input(input: &str) -> Vec<TestCase> {
@@ -77,6 +78,33 @@ fn part_one(input: &Vec<TestCase>) -> u32 {
     count
 }
 
+fn part_two(input: &mut Vec<TestCase>) {
+    let mut testcase_by_opcode = HashMap::new();
+    input.sort_by_key(|tc| tc.opcode_val);
+    for (key, group) in &input.into_iter().group_by(|tc| tc.opcode_val) {
+        testcase_by_opcode.insert(key, group.collect::<Vec<_>>());
+    }
+
+    for (opcode_val, test_cases) in testcase_by_opcode {
+        println!("\n\n\n\n------------------------------------");
+        let answer = OPCODES.iter().find(|op| {
+            println!("testing: {:?}", op);
+            let is_answer = test_cases.iter().all(|tc| {
+                let ins = Instruction {
+                    op: *(op.clone()),
+                    a: tc.a,
+                    b: tc.b,
+                    c: tc.b,
+                };
+                let after = ins.apply(&tc.before);
+                after.is_some() && after.unwrap().eq(&tc.after)
+            });
+            is_answer
+        });
+        println!("opcode_val {:?} is {:?}", opcode_val, answer);
+    }
+}
+
 #[derive(Debug)]
 struct TestCase {
     before: Vec<u32>,
@@ -87,7 +115,7 @@ struct TestCase {
     after: Vec<u32>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum Opcode {
     Addr,
     Addi,
@@ -147,12 +175,14 @@ impl Instruction {
         let (a, b, c) = (*a, *b, *c);
 
         lazy_static! {
-            static ref NEEDS_REG_A :Vec<Opcode> = vec![Addr, Addi, Mulr, Muli, Banr, Bani, Borr, Bori, Setr, Gtri, Gtrr, Eqri, Eqrr];
-            static ref NEEDS_REG_B :Vec<Opcode> = vec![Addr, Mulr, Banr, Borr, Gtir, Gtrr, Eqir, Eqrr];
+            static ref NEEDS_REG_A: Vec<Opcode> =
+                vec![Addr, Addi, Mulr, Muli, Banr, Bani, Borr, Bori, Setr, Gtri, Gtrr, Eqri, Eqrr];
+            static ref NEEDS_REG_B: Vec<Opcode> =
+                vec![Addr, Mulr, Banr, Borr, Gtir, Gtrr, Eqir, Eqrr];
         }
 
         if NEEDS_REG_A.contains(op) && regs.get(a as usize).is_none() {
-           return None;
+            return None;
         }
 
         if NEEDS_REG_B.contains(op) && regs.get(b as usize).is_none() {
@@ -230,7 +260,7 @@ impl Instruction {
 mod tests {
     use super::*;
 
-//    #[test]
+    //    #[test]
     fn test_bad_guesses() {
         let input = include_str!("../input/day16");
         let input = parse_input(input);
@@ -241,10 +271,12 @@ mod tests {
 
     #[test]
     fn test_part_one_testcases() {
-        let input = parse_input(r"Before: [3, 2, 1, 1]
+        let input = parse_input(
+            r"Before: [3, 2, 1, 1]
 9 2 1 2
 After:  [3, 2, 2, 1]
-");
+",
+        );
         let answer = part_one(&input);
 
         assert_eq!(answer, 3);
