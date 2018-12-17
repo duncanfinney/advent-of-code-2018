@@ -4,6 +4,7 @@ pub fn solve() {
     let input = include_str!("../input/day12");
     let mut input = parse_input(&input);
 
+    // part one
     print!("0: ");
     input.debug_print();
     for n in 0..20 {
@@ -18,6 +19,9 @@ pub fn solve() {
         sum += n;
     }
     println!("part_one= {}", sum);
+
+
+    //TODO: figure out how part two works... solution shamelessly yanked from: https://www.reddit.com/r/adventofcode/comments/a5eztl/2018_day_12_solutions/ebm4exr
 }
 
 fn parse_input(input: &str) -> Pots {
