@@ -122,11 +122,8 @@ impl Pots {
             ];
             let new_state = match self.replacements.iter().find(|r| r.old.eq(&pattern)) {
                 Some(r) => r.new,
-                None => pattern[2],
+                None => PotState::Empty,
             };
-            if self.replacements.iter().find(|r| r.old.eq(&pattern)).is_some() {
-             println!("found a replacment at least");
-            }
 
             new_pots.insert(pot_n, new_state);
             if pot_n < min {
