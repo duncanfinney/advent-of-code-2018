@@ -16,7 +16,7 @@ pub fn solve() {
 
 fn parse_input(input: &str) -> Vec<TestCase> {
     let mut ret = vec![];
-    let vec_from_str = |s: &str| -> Vec<u32> {
+    let vec_from_str = |s: &str| -> Vec<i64> {
         lazy_static! {
             static ref RE: Regex = Regex::new(r"\d+").unwrap();
         }
@@ -46,7 +46,7 @@ fn parse_input(input: &str) -> Vec<TestCase> {
     ret
 }
 
-fn part_one(input: &Vec<TestCase>) -> u32 {
+fn part_one(input: &Vec<TestCase>) -> i64 {
     let mut count = 0;
     for (n, tc) in input.iter().enumerate() {
         let valid_codes = OPCODES
@@ -85,57 +85,70 @@ fn part_two(input: &mut Vec<TestCase>) {
         testcase_by_opcode.insert(key, group.collect::<Vec<_>>());
     }
 
-    for (opcode_val, test_cases) in testcase_by_opcode {
-        println!("\n\n\n\n------------------------------------");
-        let answer = OPCODES.iter().find(|op| {
-            println!("testing: {:?}", op);
-            let is_answer = test_cases.iter().all(|tc| {
-                let ins = Instruction {
-                    op: *(op.clone()),
-                    a: tc.a,
-                    b: tc.b,
-                    c: tc.b,
-                };
-                let after = ins.apply(&tc.before);
-                after.is_some() && after.unwrap().eq(&tc.after)
-            });
-            is_answer
+    let (key, group) = testcase_by_opcode.iter().next().unwrap();
+    for op in OPCODES.iter() {
+        let mut cnt = 0;
+        group.iter().for_each(|tc| {
+            let ins = Instruction {
+                op: op.clone(),
+                a: tc.a,
+                b: tc.b,
+                c: tc.b,
+            };
+            let after = ins.apply(&tc.before);
+            if after.is_some() && after.unwrap().eq(&tc.after) {
+                cnt += 1;
+            }
         });
-        println!("opcode_val {:?} is {:?}", opcode_val, answer);
+        println!("op= {:?}, cnt= {}/{}", op, cnt, group.len());
     }
+
+    //    for (opcode_val, test_cases) in testcase_by_opcode {
+    ////        println!("\n\n\n\n------------------------------------");
+    //        let answer = OPCODES.iter().find(|op| {
+    //            let is_answer = test_cases.iter().all(|tc| {
+    //                let ins = Instruction {
+    //                    op: *(op.clone()),
+    //                    a: tc.a,
+    //                    b: tc.b,
+    //                    c: tc.b,
+    //                };
+    //                let after = ins.apply(&tc.before);
+    //                let answer = after.is_some() && after.unwrap().eq(&tc.after);
+    ////                println!("testing: {:?} -> {}", op, answer);
+    //                answer
+    //            });
+    //            is_answer
+    //        });
+    ////        println!("opcode_val {:?} is {:?}", opcode_val, answer);
+    //    }
 }
 
 #[derive(Debug)]
 struct TestCase {
-    before: Vec<u32>,
-    opcode_val: u32,
-    a: u32,
-    b: u32,
-    c: u32,
-    after: Vec<u32>,
+    before: Vec<i64>,
+    opcode_val: i64,
+    a: i64,
+    b: i64,
+    c: i64,
+    after: Vec<i64>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Opcode {
     Addr,
     Addi,
-
     Mulr,
     Muli,
-
     Banr,
     Bani,
-
     Borr,
     Bori,
-
     Setr,
     Seti,
-
     Gtir,
     Gtri,
     Gtrr,
-
     Eqir,
     Eqri,
     Eqrr,
@@ -163,13 +176,13 @@ static OPCODES: [Opcode; 16] = [
 #[derive(Debug)]
 struct Instruction {
     op: Opcode,
-    a: u32,
-    b: u32,
-    c: u32,
+    a: i64,
+    b: i64,
+    c: i64,
 }
 
 impl Instruction {
-    fn apply(&self, regs: &Vec<u32>) -> Option<Vec<u32>> {
+    fn apply(&self, regs: &Vec<i64>) -> Option<Vec<i64>> {
         use self::Opcode::*;
         let Instruction { op, a, b, c } = self;
         let (a, b, c) = (*a, *b, *c);
