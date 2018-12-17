@@ -6,7 +6,6 @@ pub fn solve() {
 }
 
 fn parse_input(input: &str) -> Pots {
-
     let mut lines = input.lines();
     let mut split = lines.next().unwrap().split(":");
     split.next().unwrap();
@@ -23,27 +22,24 @@ fn parse_input(input: &str) -> Pots {
         .collect();
 
     println!("pot_state= {:?}", pot_states);
-    Pots {
-        pot_states
-    }
-
+    Pots { pot_states }
 }
 
 #[derive(Debug)]
 struct Pots {
-    pot_states: HashMap<i32, PotState>
+    pot_states: HashMap<i32, PotState>,
 }
 
 #[derive(Debug, PartialEq)]
 enum PotState {
     Pot,
-    Empty
+    Empty,
 }
 
 #[derive(Debug)]
 struct Replacement {
     old: Vec<PotState>,
-    new: Vec<PotState>
+    new: Vec<PotState>,
 }
 
 impl Pots {
@@ -51,4 +47,3 @@ impl Pots {
         self.pot_states.get(&n).unwrap_or(&PotState::Empty)
     }
 }
-
