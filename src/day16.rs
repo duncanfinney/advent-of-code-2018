@@ -2,6 +2,7 @@ use itertools::Itertools;
 use lazy_static::*;
 use regex::Regex;
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 pub fn solve() {
     let input = include_str!("../input/day16");
@@ -79,49 +80,39 @@ fn part_one(input: &Vec<TestCase>) -> i64 {
 }
 
 fn part_two(input: &mut Vec<TestCase>) {
-    let mut testcase_by_opcode = HashMap::new();
-    input.sort_by_key(|tc| tc.opcode_val);
-    for (key, group) in &input.into_iter().group_by(|tc| tc.opcode_val) {
-        testcase_by_opcode.insert(key, group.collect::<Vec<_>>());
-    }
+    let mut figured_out = HashSet::new();
+    let mut number_to_opcode = HashMap::new();
 
-    let (key, group) = testcase_by_opcode.iter().next().unwrap();
-    for op in OPCODES.iter() {
-        let mut cnt = 0;
-        group.iter().for_each(|tc| {
-            let ins = Instruction {
-                op: op.clone(),
-                a: tc.a,
-                b: tc.b,
-                c: tc.b,
-            };
-            let after = ins.apply(&tc.before);
-            if after.is_some() && after.unwrap().eq(&tc.after) {
-                cnt += 1;
+    for _ in 0..16 {
+        for tc in input.iter() {
+            if figured_out.contains(&tc.opcode_val) {
+                continue;
             }
-        });
-        println!("op= {:?}, cnt= {}/{}", op, cnt, group.len());
-    }
 
-    //    for (opcode_val, test_cases) in testcase_by_opcode {
-    ////        println!("\n\n\n\n------------------------------------");
-    //        let answer = OPCODES.iter().find(|op| {
-    //            let is_answer = test_cases.iter().all(|tc| {
-    //                let ins = Instruction {
-    //                    op: *(op.clone()),
-    //                    a: tc.a,
-    //                    b: tc.b,
-    //                    c: tc.b,
-    //                };
-    //                let after = ins.apply(&tc.before);
-    //                let answer = after.is_some() && after.unwrap().eq(&tc.after);
-    ////                println!("testing: {:?} -> {}", op, answer);
-    //                answer
-    //            });
-    //            is_answer
-    //        });
-    ////        println!("opcode_val {:?} is {:?}", opcode_val, answer);
-    //    }
+            let valid_codes = OPCODES
+                .iter()
+                .filter(|op| number_to_opcode.values().find(|op2| op2 == op).is_none())
+                .map(|op| Instruction {
+                    op: op.clone(),
+                    a: tc.a,
+                    b: tc.b,
+                    c: tc.c,
+                })
+                .filter(|ins| {
+                    let output = ins.apply(&tc.before);
+                    if let Some(output) = output {
+                        tc.after.eq(&output)
+                    } else {
+                        false
+                    }
+                })
+                .collect_vec();
+            if valid_codes.len() == 1 {
+                figured_out.insert(tc.opcode_val);
+                number_to_opcode.insert(tc.opcode_val, valid_codes[0].op);
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
