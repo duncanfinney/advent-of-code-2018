@@ -21,7 +21,7 @@ fn main() {
     use std::time::Instant;
     let start_time = Instant::now();
 
-    day19::solve();
+    day15::solve();
 
     let duration = start_time.elapsed().as_millis();
     println!("runtime: {}ms", duration);

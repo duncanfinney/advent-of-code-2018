@@ -1,4 +1,8 @@
+#[allow(unused)]
 use itertools::*;
+use std::collections::BTreeMap;
+use std::cmp::{Ord, Ordering};
+
 pub fn solve() {
     let input = include_str!("../input/day15");
     let input = parse_input(&input);
@@ -7,48 +11,50 @@ pub fn solve() {
 }
 
 fn parse_input(input: &str) -> Board {
-    let mut units = vec![];
+    let mut units = BTreeMap::new();
+    let mut tiles = BTreeMap::new();
 
-    let tiles = input
+    input
         .lines()
         .enumerate()
-        .map(|(y, l)| {
+        .for_each(|(y, l)| {
             l.chars()
                 .enumerate()
-                .map(|(x, c)| match c {
-                    '#' => Tile::Wall,
-                    '.' => Tile::OpenCavern,
-                    'E' => {
-                        units.push(Unit {
-                            x,
-                            y,
-                            hp: 200,
-                            species: Species::Elf,
-                        });
-                        Tile::OpenCavern
+                .for_each(|(x, c)| {
+                    let coordinate = Coordinate { x, y };
+                    match c {
+                        '#' =>  { tiles.insert(coordinate, Tile::Wall); },
+                        '.' => { tiles.insert(coordinate, Tile::OpenCavern); },
+                        'E' => {
+                            units.insert(coordinate, Unit {
+                                x,
+                                y,
+                                hp: 200,
+                                species: Species::Elf,
+                            });
+                            tiles.insert(coordinate, Tile::OpenCavern);
+                        }
+                        'G' => {
+                            units.insert(coordinate, Unit {
+                                x,
+                                y,
+                                hp: 200,
+                                species: Species::Goblin,
+                            });
+                            tiles.insert(coordinate, Tile::OpenCavern);
+                        }
+                        _ => panic!("bad puzzle input"),
                     }
-                    'G' => {
-                        units.push(Unit {
-                            x,
-                            y,
-                            hp: 200,
-                            species: Species::Goblin,
-                        });
-                        Tile::OpenCavern
-                    }
-                    _ => panic!("bad puzzle input"),
-                })
-                .collect::<Vec<Tile>>()
-        })
-        .collect_vec();
+                });
+        });
 
     Board { tiles, units }
 }
 
 #[derive(Debug)]
 struct Board {
-    tiles: Vec<Vec<Tile>>,
-    units: Vec<Unit>,
+    tiles: BTreeMap<Coordinate, Tile>,
+    units: BTreeMap<Coordinate, Unit>,
 }
 
 #[derive(Debug)]
@@ -71,11 +77,39 @@ struct Unit {
     y: usize,
 }
 
+#[derive(Debug, Clone, Copy, Default, Eq, Hash, PartialEq)]
+struct Coordinate {
+    x: usize,
+    y: usize,
+}
+
+impl Coordinate {
+    fn distance(&self, other: Coordinate) -> usize {
+        let x = (self.x as isize - other.x as isize).abs();
+        let y = (self.y as isize - other.y as isize).abs();
+        (x + y) as usize
+    }
+}
+
+impl Ord for Coordinate {
+    fn cmp(&self, other: &Coordinate) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl PartialOrd for Coordinate {
+    fn partial_cmp(&self, other: &Coordinate) -> Option<Ordering> {
+        Some((self.y, self.x).cmp(&(other.y, other.x)))
+    }
+}
+
+
 impl Board {
     fn debug_print(&self) {
-        for (y, r) in self.tiles.iter().enumerate() {
-            for (x, c) in r.iter().enumerate() {
-                let rep = match self.units.iter().find(|c| c.is_on_tile(x, y)) {
+        for y in 0..=35 {
+            for x in 0..=35 {
+                let c =  self.tiles.get(&Coordinate{ x, y }).unwrap_or(&Tile::Wall);
+                let rep = match self.units.iter().map(|pair| pair.1).find(|c| c.is_on_tile(x, y)) {
                     Some(Unit { species, .. }) => match species {
                         Species::Elf => "E",
                         Species::Goblin => "G",
@@ -85,16 +119,27 @@ impl Board {
                         Tile::OpenCavern => ".",
                     },
                 };
-
                 print!("{}", rep);
             }
+
             print!("\n");
         }
+    }
+
+    fn do_tick(&mut self) -> bool {
+        let mut any_move = false;
+        let unit_locations : Vec<_> = self.units.keys().cloned().collect();
+
+        false
     }
 }
 
 impl Unit {
     fn is_on_tile(&self, cx: usize, cy: usize) -> bool {
         self.x == cx && self.y == cy
+    }
+
+    fn is_enemy(&self, other: &Unit) -> bool {
+        self.species != other.species
     }
 }
