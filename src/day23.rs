@@ -38,7 +38,14 @@ fn parse_input(input: &str) -> Vec<Nanobot> {
 fn part_one(input: &Vec<Nanobot>) -> usize {
     let biggest_nanobot = input.iter().max_by_key(|n| n.radius).unwrap();
 
-    input.iter().filter(|n| biggest_nanobot.is_in_range(n)).count()
+    input
+        .iter()
+        .filter(|n| biggest_nanobot.is_in_range(n))
+        .count()
+}
+
+fn part_two(input: &Vec<Nanobot>) -> (i64, ){
+
 }
 
 #[derive(Debug)]
@@ -48,6 +55,7 @@ struct Nanobot {
 }
 
 impl Nanobot {
+    //noinspection RsUnresolvedReference
     fn distance_to(&self, other: &Nanobot) -> i64 {
         (other.position.0 - self.position.0).abs()
             + (other.position.1 - self.position.1).abs()
