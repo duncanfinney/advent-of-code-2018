@@ -39,7 +39,7 @@ fn part_two(input: usize) -> usize {
 
     let mut search_idx: usize = 0;
 
-    while seq.len() < 100000000 {
+    while seq.len() < 20500000 {
         search_idx += 1;
 
 
